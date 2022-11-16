@@ -3,7 +3,7 @@ This project provides a wrapper to the sleepwalk R package, which can be found [
 
 The motivation for this wrapper comes from previous work I've done on the quality of dimension reduction embeddings for cytometry data, which you can view [here](https://tjburns08.github.io/tjb_dimr_talk.pdf). Simply put, some users in the cytometry field like to gate or cluster directly on the embeddings. This re-working of sleepwalk allows these users to gain additional intuition around whether this is a good idea for the data in question and/or a particular cell subset.  
 
-In the image below, notice that the k-nearest neighbors of a given cell in the embedding space (left) is very different than the k-nearest neighbors of the same cell in the original feature space. If you want to gate or cluster directly on the embedding, these visualizations are critical to understanding how small to partition, if at all. 
+In the image below, notice that the k-nearest neighbors of a given cell in the embedding space (left) is very different than the k-nearest neighbors of the same cell in the original feature space (right). If you want to gate or cluster directly on the embedding, these visualizations are critical to understanding how small to partition the embedding, if at all. 
 
 ![](tsne_knn.png)
 
@@ -17,6 +17,9 @@ My wrapper allows for the visualization of a given cell's K-nearest neighbors. I
 1. Install the sleepwalk package from CRAN. 
 2. Look at the example I provide in notebooks/ to get your data into the proper format, and run the wrapper.
 
-When you run sleepwalk, a browser window will open up with the interactive embedding. The more cells you have, the longer it will take for the map to show up in the browser window. In my experience, 10000 cells with a k of 100 gives you the intuition you need. Note also that the console will say "server has been stopped." That doesn't mean that the tool failed. In my experience, the interactive map works just fine despite this message. You can see an example of the output below.
+When you run sleepwalk, a browser window will open up with the interactive embedding. The more cells you have, the longer it will take for the map to show up in the browser window. There will be a lag time where the browser window is blank. When you test this tool for the first time, run it with a subsample of 1000 cells. In my experience, 10000 cells with a k of 100 gives you the intuition you need. Note also that the console will say "server has been stopped." That doesn't mean that the tool failed. In my experience, the interactive map works just fine despite this message. You can see an example of the output below.
 
 ![](knn_sleepwalk_clip.gif)
+
+## Additional notes
+In the current implementation, the nearest neighbors are computed using Euclidean distance. Future versions of this software will have additional metrics, like cosine distance. 
