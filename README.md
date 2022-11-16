@@ -22,4 +22,7 @@ When you run sleepwalk, a browser window will open up with the interactive embed
 ![](knn_sleepwalk_clip.gif)
 
 ## Additional notes
-In the current implementation, the nearest neighbors are computed using Euclidean distance. Future versions of this software will have additional metrics, like cosine distance. 
+In the current implementation, the nearest neighbors are computed using Euclidean distance. Future versions of this software will have additional metrics, like cosine distance.
+
+## Acknowledgements
+Sofie VanGassen for making me aware of the sleepwalk package. Marie Burns for providing the data used in the demo. AG Mei and AG Grutzkau at the German Rheumatism Research Center for providing feedback and data in the earlier stages of this project (see the slide deck I linked above).
