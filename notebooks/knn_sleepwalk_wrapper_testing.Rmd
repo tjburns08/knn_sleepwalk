@@ -1,0 +1,41 @@
+---
+title: "How to use the KNN sleepwalk wrapper"
+output: html_notebook
+---
+
+This code tests the wrapper function for a KNN-based sleepwalk.
+
+```{r functions}
+source('../src/knn_sleepwalk.R')
+```
+
+
+```{r get_data}
+library(tidyverse)
+library(here)
+library(flowCore)
+library(sleepwalk)
+
+setwd(here::here('data'))
+
+# Read in the cells
+cells <- flowCore::read.FCS(list.files(pattern = "SLE")) # Data from Marie Burns
+params <- as.vector(Biobase::pData(parameters(cells))$desc)
+colnames(cells) <- params
+cells <- exprs(cells) 
+cells <- cells[, grepl("CD", colnames(cells))] # A shortcut to get to the surface markers we care about
+cells <- asinh(cells/5) %>% as_tibble()
+cells <- cells[sample(nrow(cells), 10000),]
+cells
+```
+
+```{r run_dimr}
+library(umap)
+dimr <- umap::umap(cells)$layout %>% as_tibble()
+dimr
+```
+
+```{r run_knn_sleepwalk}
+KnnSleepwalk(mat = cells, embedding = dimr, k = 100)
+```
+
