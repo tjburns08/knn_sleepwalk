@@ -15,7 +15,8 @@ My wrapper allows for the visualization of a given cell's K-nearest neighbors. I
 
 ## How to use
 1. Install the sleepwalk package from CRAN. 
-2. Look at the example I provide in notebooks/ to get your data into the proper format, and run the wrapper.
+2. Look at the example I provide in notebooks/ to get your data into the proper format.
+3. Run the wrapper, which is found in src/
 
 When you run sleepwalk, a browser window will open up with the interactive embedding. The more cells you have, the longer it will take for the map to show up in the browser window. There will be a lag time where the browser window is blank. When you test this tool for the first time, run it with a subsample of 1000 cells. In my experience, 10000 cells with a k of 100 gives you the intuition you need. Note also that the console will say "server has been stopped." That doesn't mean that the tool failed. In my experience, the interactive map works just fine despite this message. You can see an example of the output below.
 
