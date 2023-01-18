@@ -2,7 +2,7 @@
 # Author: Tyler J Burns
 # Date: November 16, 2022
 
-#' @title KNN Sleepwalk
+#' @title K-nearest neighbors Sleepwalk
 #' @description Takes a data matrix and a 2-D embedding as input. It produces 
 #' a 'KNN matrix' and places that along with the aforementioned inputs into the
 #' sleepwalk function.
@@ -17,9 +17,31 @@ KnnSleepwalk <- function(mat, embedding, k = 100) {
     message("Finding k-nearest neighbors")
     nn_mat <- lapply(seq(nrow(dist_mat)), function(i) {
         curr <- dist_mat[i,]
-        max_dist <- sort(curr)[k] # This is the K
+        max_dist <- sort(curr, decreasing = FALSE)[k] # This is the K, decreasing set to false
         curr <- ifelse(curr <= max_dist, curr, 100) # A large number
         return(curr)
     }) %>% do.call(rbind, .)
     sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat)
+}
+
+#' @title K-farthest neighbors Sleepwalk
+#' @description Takes a data matrix and a 2-D embedding as input. It produces 
+#' a 'KFN matrix' and places that along with the aforementioned inputs into the
+#' sleepwalk function.
+#' @param mat A data matrix with data points as rows and features as columns.
+#' the matrix must already be filtered by the markers you care about.
+#' @param embedding The 2-D embedding of the data matrix, in matrix format with
+#' data points as rows and two columns.
+#' @param k The number of farthest neighbors to be visualized
+KfnSleepwalk <- function(mat, embedding, k = 100) {
+  message('Building distance matrix')
+  dist_mat <- dist(mat) %>% as.matrix()
+  message("Finding k-farthest neighbors")
+  nn_mat <- lapply(seq(nrow(dist_mat)), function(i) {
+    curr <- dist_mat[i,]
+    min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to false
+    curr <- ifelse(curr >= min_dist, curr, 100) # A large number
+    return(curr)
+  }) %>% do.call(rbind, .)
+  sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat)
 }

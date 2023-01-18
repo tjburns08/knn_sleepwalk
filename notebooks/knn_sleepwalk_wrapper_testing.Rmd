@@ -15,6 +15,7 @@ library(tidyverse)
 library(here)
 library(flowCore)
 library(sleepwalk)
+set.seed(1)
 
 setwd(here::here('data'))
 
@@ -31,11 +32,18 @@ cells
 
 ```{r run_dimr}
 library(umap)
-dimr <- umap::umap(cells)$layout %>% as_tibble()
+library(Rtsne)
+
+# Choose one
+# dimr <- umap::umap(cells)$layout %>% as_tibble()
+dimr <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
 dimr
 ```
 
 ```{r run_knn_sleepwalk}
-KnnSleepwalk(mat = cells, embedding = dimr, k = 100)
+# Choose one
+# Set dimr as mat as well
+# KnnSleepwalk(mat = cells, embedding = dimr, k = 1000)
+KfnSleepwalk(mat = cells, embedding = dimr, k = 1000)
 ```
 
