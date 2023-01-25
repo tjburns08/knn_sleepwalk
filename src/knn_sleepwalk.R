@@ -18,7 +18,7 @@ KnnSleepwalk <- function(mat, embedding, k = 100) {
     nn_mat <- lapply(seq(nrow(dist_mat)), function(i) {
         curr <- dist_mat[i,]
         max_dist <- sort(curr, decreasing = FALSE)[k] # This is the K, decreasing set to false
-        curr <- ifelse(curr <= max_dist, curr, 100) # A large number
+        curr <- ifelse(curr <= max_dist, curr, 1000) # A large number
         return(curr)
     }) %>% do.call(rbind, .)
     sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat)
@@ -40,7 +40,7 @@ KfnSleepwalk <- function(mat, embedding, k = 100) {
   nn_mat <- lapply(seq(nrow(dist_mat)), function(i) {
     curr <- dist_mat[i,]
     min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to false
-    curr <- ifelse(curr >= min_dist, curr, 100) # A large number
+    curr <- ifelse(curr >= min_dist, curr, 1000) # A large number
     return(curr)
   }) %>% do.call(rbind, .)
   sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat)
