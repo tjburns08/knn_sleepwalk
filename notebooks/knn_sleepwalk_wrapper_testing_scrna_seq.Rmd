@@ -4,6 +4,8 @@ output: html_document
 date: "2023-01-25"
 ---
 
+This code tests the wrapper function for a KNN-based sleepwalk, particularly for single cell data. We use the dataset and [Seurat vignette](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) here as a template. 
+
 ```{r functions}
 source('../src/knn_sleepwalk.R')
 ```
