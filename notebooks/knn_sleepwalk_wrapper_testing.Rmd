@@ -34,16 +34,14 @@ cells
 library(umap)
 library(Rtsne)
 
-# Choose one
-# dimr <- umap::umap(cells)$layout %>% as_tibble()
-dimr <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
-dimr
+umap <- umap::umap(cells)$layout %>% as_tibble()
+tsne <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
 ```
 
 ```{r run_knn_sleepwalk}
 # Choose one
 # Set dimr as mat as well
-# KnnSleepwalk(mat = cells, embedding = dimr, k = 1000)
-KfnSleepwalk(mat = cells, embedding = dimr, k = 1000)
+# KnnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 1000)
+KfnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 1000)
 ```
 
