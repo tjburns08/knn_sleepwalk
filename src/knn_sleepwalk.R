@@ -11,7 +11,7 @@
 #' @param embedding The 2-D embedding of the data matrix, in matrix format with
 #' data points as rows and two columns.
 #' @param k The number of nearest neighbors to be visualized
-KnnSleepwalk <- function(mat, embedding, k = 100) {
+KnnSleepwalk <- function(mat, embedding, k = 100, output_file = NULL, dimr_names = c("t-SNE", "UMAP")) {
     message('Building distance matrix')
     dist_mat <- dist(mat) %>% as.matrix()
     message("Finding k-nearest neighbors")
@@ -21,7 +21,7 @@ KnnSleepwalk <- function(mat, embedding, k = 100) {
         curr <- ifelse(curr <= max_dist, curr, 1000) # A large number
         return(curr)
     }) %>% do.call(rbind, .)
-    sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat)
+    sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat, saveToFile = output_file, titles = dimr_names)
 }
 
 #' @title K-farthest neighbors Sleepwalk
@@ -33,7 +33,7 @@ KnnSleepwalk <- function(mat, embedding, k = 100) {
 #' @param embedding The 2-D embedding of the data matrix, in matrix format with
 #' data points as rows and two columns.
 #' @param k The number of farthest neighbors to be visualized
-KfnSleepwalk <- function(mat, embedding, k = 100) {
+KfnSleepwalk <- function(mat, embedding, k = 100, output_file = NULL, dimr_names = c("t-SNE", "UMAP")) {
   message('Building distance matrix')
   dist_mat <- dist(mat) %>% as.matrix()
   message("Finding k-farthest neighbors")
@@ -43,5 +43,5 @@ KfnSleepwalk <- function(mat, embedding, k = 100) {
     curr <- ifelse(curr >= min_dist, curr, 1000) # A large number
     return(curr)
   }) %>% do.call(rbind, .)
-  sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat)
+  sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat, saveToFile = output_file, titles = dimr_names)
 }

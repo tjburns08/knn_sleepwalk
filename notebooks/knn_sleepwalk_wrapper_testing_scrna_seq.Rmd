@@ -47,11 +47,10 @@ hid <- pbmc@assays$RNA@scale.data[var_genes,] %>% t() %>% as_tibble()
 ```
 
 ```{r run_knn_sleepwalk}
-# Choose one
-# Set dimr as mat as well
-# KnnSleepwalk(mat = pca, embedding = list(tsne, umap), k = 27)
-# KfnSleepwalk(mat = pca, embedding = list(tsne, umap), k = 27)
-KnnSleepwalk(mat = hid, embedding = list(tsne, umap), k = 27)
-# KfnSleepwalk(mat = hid, embedding = list(tsne, umap), k = 27)
+setwd(here::here("output"))
+KnnSleepwalk(mat = pca, embedding = list(tsne, umap), k = 27, output_file = "knn_sleepwalk_scrna_seq_pca.html")
+KfnSleepwalk(mat = pca, embedding = list(tsne, umap), k = 270, output_file = "kfn_sleepwalk_scrna_seq_pca.html")
+KnnSleepwalk(mat = hid, embedding = list(tsne, umap), k = 27, output_file = "knn_sleepwalk_scrna_seq_var_genes.html")
+KfnSleepwalk(mat = hid, embedding = list(tsne, umap), k = 270, output_file = "kfn_sleepwalk_scrna_seq_var_genes.html")
 ```
 

@@ -26,7 +26,7 @@ colnames(cells) <- params
 cells <- exprs(cells) 
 cells <- cells[, grepl("CD", colnames(cells))] # A shortcut to get to the surface markers we care about
 cells <- asinh(cells/5) %>% as_tibble()
-cells <- cells[sample(nrow(cells), 10000),]
+cells <- cells[sample(nrow(cells), 4000),]
 cells
 ```
 
@@ -39,9 +39,8 @@ tsne <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
 ```
 
 ```{r run_knn_sleepwalk}
-# Choose one
-# Set dimr as mat as well
-# KnnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 1000)
-KfnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 1000)
+setwd(here::here("output"))
+KnnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 40, output_file = "knn_sleepwalk_cytof.html")
+KfnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 400, output_file = "kfn_sleepwalk_cytof.html")
 ```
 
