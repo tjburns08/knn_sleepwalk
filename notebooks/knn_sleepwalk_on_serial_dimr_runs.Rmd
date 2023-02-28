@@ -1,0 +1,53 @@
+---
+title: "Knn sleepwalk wrapper on serial dimr runs"
+output: html_document
+date: "2023-02-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This code tests the wrapper function for a KNN-based sleepwalk.
+
+```{r functions}
+source('../src/knn_sleepwalk.R')
+```
+
+
+```{r get_data}
+library(tidyverse)
+library(here)
+library(flowCore)
+library(sleepwalk)
+set.seed(1)
+
+setwd(here::here('data'))
+
+# Read in the cells
+cells <- flowCore::read.FCS(list.files(pattern = "SLE")) # Data from Marie Burns
+params <- as.vector(Biobase::pData(parameters(cells))$desc)
+colnames(cells) <- params
+cells <- exprs(cells) 
+cells <- cells[, grepl("CD", colnames(cells))] # A shortcut to get to the surface markers we care about
+cells <- asinh(cells/5) %>% as_tibble()
+cells <- cells[sample(nrow(cells), 4000),]
+cells
+```
+
+```{r run_dimr}
+library(umap)
+library(Rtsne)
+
+umap_1 <- umap::umap(cells, preserve.seed = FALSE)$layout %>% as_tibble()
+umap_2 <- umap::umap(cells, preserve.seed = FALSE)$layout %>% as_tibble()
+
+tsne_1 <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
+tsne_2 <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
+```
+
+```{r run_knn_sleepwalk}
+setwd(here::here("output"))
+KnnSleepwalk(mat = tsne_1, embedding = list(tsne_1, tsne_2), k = 40, output_file = "knn_sleepwalk_cytof_tsne_runs.html", dimr_names = c("t-SNE run 1", "t-SNE run 2"))
+KnnSleepwalk(mat = umap_1, embedding = list(umap_1, umap_2), k = 40, output_file = "knn_sleepwalk_cytof_umap_runs.html", dimr_names = c("t-SNE run 1", "t-SNE run 2"))
+```
