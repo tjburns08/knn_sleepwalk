@@ -46,10 +46,12 @@ KfnSleepwalk <- function(mat, embedding, k = 100, output_file = NULL, dimr_names
   sleepwalk::sleepwalk(embeddings = embedding, distances = nn_mat, saveToFile = output_file, titles = dimr_names)
 }
 
-#' @title K-nearest neighbors Sleepwalk
+#' @title K-nearest neighbors Sleepwalk Direct
 #' @description Takes a data matrix and a 2-D embedding as input. It produces 
 #' a 'KNN matrix' and places that along with the aforementioned inputs into the
-#' sleepwalk function.
+#' sleepwalk function. Unlike the default KNN sleepwalk function, this one makes
+#' two KNN matrices, like UMAP space vs high-D space for comparisons across the
+#' same embedding.
 #' @param mat1 A data matrix with data points as rows and features as columns.
 #' the matrix must already be filtered by the markers you care about.
 #' @param mat2 A second data matrix in the format as above
