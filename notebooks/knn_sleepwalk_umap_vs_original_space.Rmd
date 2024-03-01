@@ -1,0 +1,50 @@
+---
+title: "Knn sleepwalk wrapper on umap space and original space"
+output: html_document
+date: "2024-03-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This code runs the wrapper function for a KNN-based sleepwalk.
+
+```{r functions}
+source('../src/knn_sleepwalk.R')
+```
+
+```{r process_data}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+
+# Load the PBMC dataset
+pbmc.data <- Read10X(data.dir = "../data/filtered_gene_bc_matrices/hg19/")
+# Initialize the Seurat object with the raw (non-normalized data).
+pbmc <- CreateSeuratObject(counts = pbmc.data, project = "pbmc3k", min.cells = 3, min.features = 200)
+
+# Processing
+pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
+pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+top10 <- head(VariableFeatures(pbmc), 10)
+all.genes <- rownames(pbmc)
+pbmc <- ScaleData(pbmc, features = all.genes)
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
+```
+
+```{r run_dimr}
+# Dimr
+pbmc <- RunTSNE(pbmc, dims = 1:10)
+pbmc <- RunUMAP(pbmc, dims = 1:10)
+
+# Tidy
+tsne <- pbmc@reductions$tsne@cell.embeddings %>% as_tibble()
+umap <- pbmc@reductions$umap@cell.embeddings %>% as_tibble()
+
+# And add pca as the original manifold
+pca <- pbmc@reductions$pca@cell.embeddings %>% as_tibble()
+var_genes <- pbmc@assays$RNA@var.features
+hid <- pbmc@assays$RNA@scale.data[var_genes,] %>% t() %>% as_tibble()
+```
