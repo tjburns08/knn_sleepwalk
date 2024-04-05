@@ -1,0 +1,86 @@
+---
+title: "Inverted umap test"
+output: html_document
+date: "2024-04-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Inspired by information I got from the sleepwalk experiments in this project, I am going to try to build a UMAP with variations of the distance matrix. Particularly the inverted distance matrix. First, we load up everything.
+
+```{r process_data}
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(tidyverse)
+
+# Load the PBMC dataset
+pbmc.data <- Read10X(data.dir = "data/filtered_gene_bc_matrices/hg19/")
+# Initialize the Seurat object with the raw (non-normalized data).
+pbmc <- CreateSeuratObject(counts = pbmc.data, project = "pbmc3k", min.cells = 3, min.features = 200)
+
+# Processing
+pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+pbmc <- NormalizeData(pbmc, normalization.method = "LogNormalize", scale.factor = 10000)
+pbmc <- FindVariableFeatures(pbmc, selection.method = "vst", nfeatures = 2000)
+top10 <- head(VariableFeatures(pbmc), 10)
+all.genes <- rownames(pbmc)
+pbmc <- ScaleData(pbmc, features = all.genes)
+pbmc <- RunPCA(pbmc, features = VariableFeatures(object = pbmc))
+```
+
+And now we're going to run the UMAP.
+
+```{r}
+library(umap)
+
+pca <- pbmc@reductions$pca@cell.embeddings %>% as_tibble()
+umap_reg <- umap::umap(pca)$layout %>% as_tibble()
+names(umap_reg) <- c("umap1", "umap2")
+```
+
+```{r}
+ggplot(umap_reg, aes(x = umap1, y = umap2)) + geom_point()
+```
+
+Great. And now for the big experiment. First we run it on the distance matrix, which should in theory work.
+
+```{r}
+pca_dist <- dist(pca) %>% as.matrix()
+umap_dist <- umap::umap(pca_dist, input = "dist")$layout %>% as_tibble()
+names(umap_dist) <- c("umap1", "umap2")
+```
+
+```{r}
+ggplot(umap_dist, aes(x = umap1, y = umap2)) + geom_point()
+```
+
+Ok, that worked. Now we invert.
+
+```{r}
+# Add 0.01 to make sure nothing is divided by 0
+umap_dist_inverted <- umap::umap(1/(pca_dist + 0.01), input = "dist")$layout %>% as_tibble()
+names(umap_dist_inverted) <- c("umap1", "umap2")
+```
+
+```{r}
+ggplot(umap_dist_inverted, aes(x = umap1, y = umap2)) + geom_point()
+```
+
+Ok, this is weird. Now for our sleepwalk.
+
+```{r functions}
+source('src/knn_sleepwalk.R')
+```
+
+
+```{r}
+setwd(here::here("output"))
+
+KnnSleepwalkDirect(mat1 = umap_dist, mat2 = pca, embedding = list(umap_dist, umap_dist), k = 27, point_size = 4, output_file = "umap_dist_knn_sleepwalk_scrna_seq_umap_vs_pca_space.html")
+
+KnnSleepwalkDirect(mat1 = umap_dist_inverted, mat2 = pca, embedding = list(umap_dist_inverted, umap_dist_inverted), k = 27, point_size = 4, output_file = "umap_dist_inverted_knn_sleepwalk_scrna_seq_umap_vs_pca_space.html")
+```
+

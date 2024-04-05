@@ -8,6 +8,7 @@ This code tests the wrapper function for a KNN-based sleepwalk, particularly for
 
 ```{r functions}
 source('src/knn_sleepwalk.R')
+set.seed(1234)
 ```
 
 ```{r process_data}
@@ -48,4 +49,36 @@ hid <- pbmc@assays$RNA@scale.data[var_genes,] %>% t() %>% as_tibble()
 setwd(here::here("output"))
 KnnSleepwalkDirect(mat1 = umap, mat2 = pca, embedding = list(umap, umap), k = 27, point_size = 4, output_file = "knn_sleepwalk_scrna_seq_umap_vs_pca_space.html")
 ```
+Now we do this for K-farthest neighbors.
+
+```{r run_kfn_sleepwalk}
+setwd(here::here("output"))
+KfnSleepwalkDirect(mat1 = umap, mat2 = pca, embedding = list(umap, umap), k = 270, point_size = 4, output_file = "kfn_sleepwalk_scrna_seq_umap_vs_pca_space.html")
+```
+This is very difficult to interpret. So we're going to try a few tricks. Let's just run regular sleepwalk with the distance in UMAP space versus regular space. Then we invert it, where it is slightly easier to see that far away things in umap space are not equal to far away things in pca space.
+
+
+```{r}
+setwd(here::here("output"))
+umap_dist <- dist(umap) %>% as.matrix()
+pca_dist <- dist(pca) %>% as.matrix()
+
+# Normal
+sleepwalk::sleepwalk(embeddings = list(umap, umap), 
+                     compare = "distances", 
+                     distances = list(umap_dist, pca_dist), 
+                     saveToFile = "sleepwalk_scrna_seq_umap_vs_pca.html",
+                     pointSize = 4)
+
+# Inverted
+sleepwalk::sleepwalk(embeddings = list(umap, umap), 
+                     compare = "distances", 
+                     distances = list(1/umap_dist, 1/pca_dist), 
+                     saveToFile = "sleepwalk_inverted_scrna_seq_umap_vs_pca.html",
+                     pointSize = 4)
+```
+
+What we see is that in the inverted case, there's all kinds of information there that UMAP sweeps under the rug. Like a particular region that seems to be apart from everyone.
+
+
 

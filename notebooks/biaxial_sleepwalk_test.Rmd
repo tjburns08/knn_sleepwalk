@@ -1,15 +1,19 @@
 ---
-title: "How to use the KNN sleepwalk wrapper"
-output: html_notebook
+title: "Biaxial sleepwalk test"
+output: html_document
+date: "2024-04-05"
 ---
 
-This code tests the wrapper function for a KNN-based sleepwalk.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ```{r functions}
 setwd(here::here("src"))
 source("knn_sleepwalk.R")
 ```
 
+Here, we're going to test a modification of sleepwalk that compares a biaxial plot to its corresponding region on a UMAP. Let's load the CyTOF data.
 
 ```{r get_data}
 library(tidyverse)
@@ -27,21 +31,26 @@ colnames(cells) <- params
 cells <- exprs(cells) 
 cells <- cells[, grepl("CD", colnames(cells))] # A shortcut to get to the surface markers we care about
 cells <- asinh(cells/5) %>% as_tibble()
-cells <- cells[sample(nrow(cells), 4000),]
+cells <- cells[sample(nrow(cells), 10000),]
 cells
 ```
 
+Ok, now let's make our UMAP.
+
 ```{r run_dimr}
 library(umap)
-library(Rtsne)
 
 umap <- umap::umap(cells)$layout %>% as_tibble()
-tsne <- Rtsne::Rtsne(X = cells)$Y %>% as_tibble()
+umap
+```
+And now for the sleepwalk hack.
+
+```{r}
+setwd(here::here("output"))
+
+biaxial <- bind_cols(cells["195Pt_CD3"], cells["143Nd_CD19"])
+
+KnnSleepwalk(mat = biaxial, embedding = list(biaxial, umap), k = 50, output_file = "knn_sleepwalk_biaxial_test.html", point_size = 4, dimr_names = c("X = CD3, Y = CD19", "UMAP"))
 ```
 
-```{r run_knn_sleepwalk}
-setwd(here::here("output"))
-KnnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 40, output_file = "knn_sleepwalk_cytof.html")
-KfnSleepwalk(mat = cells, embedding = list(tsne, umap), k = 400, output_file = "kfn_sleepwalk_cytof.html")
-```
 
