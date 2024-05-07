@@ -1,0 +1,145 @@
+---
+title: "Biaxial sleepwalk test"
+output: html_document
+date: "2024-04-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r functions}
+setwd(here::here("src"))
+source("knn_sleepwalk.R")
+```
+
+Here, we're going to test a modification of sleepwalk that compares a biaxial plot to its corresponding region on a UMAP. Let's load the CyTOF data.
+
+```{r get_data}
+library(tidyverse)
+library(here)
+library(flowCore)
+library(sleepwalk)
+set.seed(1)
+
+setwd(here::here('data'))
+
+# Read in the cells
+cells <- flowCore::read.FCS(list.files(pattern = "SLE")) # Data from Marie Burns
+params <- as.vector(Biobase::pData(parameters(cells))$desc)
+colnames(cells) <- params
+cells <- exprs(cells) 
+cells <- cells[,!is.na(colnames(cells))]
+cells <- as_tibble(cells)
+
+# Filter the cells by marker we're going to use
+marker_info <- readr::read_csv("cytof_marker_data.csv")
+marker_info <- dplyr::filter(marker_info, is.na(notes)) # Take this out later
+
+# Subsample
+num_cells <- 10000
+cells <- cells[sample(nrow(cells), num_cells),]
+cells
+
+# Tranform the markers we want to transform
+to_transform <- dplyr::filter(marker_info, marker_type != "none")$desc
+keep_same <- dplyr::filter(marker_info, marker_type == "none")$desc %>% .[!is.na(.)]
+
+tmp1 <- cells[,to_transform]
+tmp2 <- cells[,keep_same]
+
+tmp1 <- asinh(tmp1/5)
+cells <- bind_cols(tmp1, tmp2)
+```
+
+Ok, now let's make our UMAP.
+
+```{r run_dimr}
+library(umap)
+
+surface <- cells[,dplyr::filter(marker_info, marker_type == "type")$desc]
+umap <- umap::umap(surface)$layout %>% as_tibble()
+umap
+```
+We're now going to modify the marker names to make it easier to do this next part.
+
+```{r}
+NumberDuplicates <- function(x) {
+  # Count occurrences and make adjustments if necessary
+  ux <- unique(x)
+  for (i in ux) {
+    # Indices of each unique string
+    indices <- which(x == i)
+    if (length(indices) > 1) {
+      # Modify elements at those indices
+      x[indices] <- paste0(i, seq_along(indices))
+    }
+  }
+  return(x)
+}
+
+# Take care of outlier
+if(names(cells)[19] == "142Nd_cleaved_caspase_3") {
+   names(cells)[19] <- "142Nd_cleaved-caspase-3"
+} else {
+   stop("please check the caspace 3 column")
+}
+
+# Make the naming easier
+names(cells) <- sub(".*_", "", names(cells)) %>% NumberDuplicates()
+names(cells)
+```
+
+
+And now for the sleepwalk hack.
+
+```{r}
+setwd(here::here("output"))
+
+biaxial <- bind_cols(cells$CD3, cells$CD19)
+
+KnnSleepwalk(mat = biaxial, embedding = list(biaxial, umap), k = 50, output_file = paste0("knn_sleepwalk_biaxial_test", "_", num_cells, ".html"), point_size = 4, dimr_names = c("", ""))
+```
+Now we are going to do multiple biaxials along with the UMAP. We won't worry about the killer app for back gating just yet. Let's just see what it looks like.
+
+```{r}
+setwd(here::here("output"))
+
+cd3_cd19 <- bind_cols(cells$CD3, cells$CD19)
+cd4_cd8 <- bind_cols(cells$CD4, cells$CD8)
+cd4_cd45ro <- bind_cols(cells$CD4, cells$CD45RO)
+cd45ro_cd45ra <- bind_cols(cells$CD45RO, cells$CD45RA)
+dna1_dna2 <- bind_cols(cells$DNA1, cells$DNA2)
+cd45_cd66b <- bind_cols(cells$CD45, cells$CD66b)
+cd3_cd11b <- bind_cols(cells$CD3, cells$CD11b)
+
+# KnnSleepwalk(mat = cd45ro_pnfkb, embedding = list(cd45ro_pnfkb, cd4_cd45ro, cd4_cd8, cd3_cd19, umap), k = 50, output_file = paste0("knn_sleepwalk_biaxial_backgating", "_", num_cells, ".html"), point_size = 4, dimr_names = c("", ""))
+
+KnnSleepwalk(mat = cd45ro_cd45ra, embedding = list(cd45ro_cd45ra, cd4_cd8, cd3_cd19, cd45_cd66b, umap), k = 50, output_file = paste0("knn_sleepwalk_biaxial_backgating", "_", num_cells, ".html"), point_size = 4, dimr_names = c("", "", "", "", ""))
+```
+At this point, we have to actually simulate back gating. How do we do that? By setting non-gated cells to zero. Let's redo the above example.
+
+```{r}
+setwd(here::here("output"))
+
+# Some gating, using the origin point solution for hierarchies
+cd45_gate <- apply(cells, 2, function(i) {
+    ifelse(cells$CD45 > 4 & cells$CD66b < 2, i, i + 10)
+}) %>% as_tibble()
+
+cd3_gate <- apply(cd45_gate, 2, function(i) {
+    ifelse(cd45_gate$CD3 > 3, i, i + 10)
+}) %>% as_tibble()
+
+cd4_gate <- apply(cd3_gate, 2, function(i) {
+    ifelse(cd3_gate$CD4 > 2 & cd3_gate$CD8 < 3, i, i + 10)
+}) %>% as_tibble()
+
+cd3_cd19 <- bind_cols(cd45_gate$CD3, cd45_gate$CD19)
+cd4_cd8 <- bind_cols(cd3_gate$CD4, cd3_gate$CD8)
+cd45ro_cd45ra <- bind_cols(cd4_gate$CD45RO, cd4_gate$CD45RA)
+cd45_cd66b <- bind_cols(cells$CD45, cells$CD66b)
+
+KnnSleepwalk(mat = cd45ro_cd45ra, embedding = list(cd45ro_cd45ra, cd4_cd8, cd3_cd19, cd45_cd66b, umap), k = 50, output_file = paste0("knn_sleepwalk_biaxial_backgating2", "_", num_cells, ".html"), point_size = 4, dimr_names = c("", "", "", "", ""))
+```
+

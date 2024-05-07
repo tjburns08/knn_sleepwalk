@@ -39,7 +39,7 @@ KfnSleepwalk <- function(mat, embedding, k = 100, output_file = NULL, dimr_names
   message("Finding k-farthest neighbors")
   nn_mat <- lapply(seq(nrow(dist_mat)), function(i) {
     curr <- dist_mat[i,]
-    min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to false
+    min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to true
     curr <- ifelse(curr >= min_dist, curr, 1000) # A large number
     return(curr)
   }) %>% do.call(rbind, .)
@@ -108,7 +108,7 @@ KfnSleepwalkDirect <- function(mat1, mat2, embedding, k = 100, output_file = NUL
   message("Finding k-nearest neighbors for mat1")
   nn_mat1 <- lapply(seq(nrow(dist_mat1)), function(i) {
     curr <- dist_mat1[i,]
-    min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to false
+    min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to true
     curr <- ifelse(curr >= min_dist, curr, 1000) # A large number
     return(curr)
   }) %>% do.call(rbind, .)
@@ -118,7 +118,7 @@ KfnSleepwalkDirect <- function(mat1, mat2, embedding, k = 100, output_file = NUL
   message("Finding k-nearest neighbors for mat2")
   nn_mat2 <- lapply(seq(nrow(dist_mat2)), function(i) {
     curr <- dist_mat2[i,]
-    min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to false
+    min_dist <- sort(curr, decreasing = TRUE)[k] # This is the K, decreasing set to true
     curr <- ifelse(curr >= min_dist, curr, 1000) # A large number
     return(curr)
   }) %>% do.call(rbind, .)

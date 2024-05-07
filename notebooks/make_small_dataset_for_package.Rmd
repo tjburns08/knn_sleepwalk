@@ -1,14 +1,14 @@
 ---
-title: "Knn sleepwalk wrapper on serial dimr runs"
+title: "Make small dataset for R package"
 output: html_document
-date: "2023-02-28"
+date: "2024-05-07"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This code tests the wrapper function for a KNN-based sleepwalk.
+This markdown simply takes the data we have been using, and makes a small dataset for the unit testing for the package.
 
 ```{r functions}
 source('src/knn_sleepwalk.R')
@@ -37,7 +37,7 @@ marker_info <- readr::read_csv("cytof_marker_data.csv")
 marker_info <- dplyr::filter(marker_info, is.na(notes)) # Take this out later
 
 # Subsample
-num_cells <- 10000
+num_cells <- 1000
 cells <- cells[sample(nrow(cells), num_cells),]
 cells
 
@@ -56,18 +56,15 @@ cells <- bind_cols(tmp1, tmp2)
 library(umap)
 library(Rtsne)
 
-# TODO make it surface only
 surface <- cells[,dplyr::filter(marker_info, marker_type == "type")$desc]
-
-umap_1 <- umap::umap(surface, preserve.seed = FALSE)$layout %>% as_tibble()
-umap_2 <- umap::umap(surface, preserve.seed = FALSE)$layout %>% as_tibble()
-
-tsne_1 <- Rtsne::Rtsne(X = surface)$Y %>% as_tibble()
-tsne_2 <- Rtsne::Rtsne(X = surface)$Y %>% as_tibble()
+umap <- umap::umap(surface, preserve.seed = FALSE)$layout %>% as_tibble()
+names(umap) <- c("umap1", "umap2")
 ```
 
-```{r run_knn_sleepwalk}
-setwd(here::here("output"))
-KnnSleepwalk(mat = tsne_1, embedding = list(tsne_1, tsne_2), k = 100, output_file = paste0("knn_sleepwalk_cytof_tsne_runs", "_num_cells_", num_cells, ".html"), dimr_names = c("t-SNE run 1", "t-SNE run 2"))
-KnnSleepwalk(mat = umap_1, embedding = list(umap_1, umap_2), k = 100, output_file = paste0("knn_sleepwalk_cytof_umap_runs", "_num_cells_", num_cells, ".html"), dimr_names = c("UMAP run 1", "UMAP run 2"))
+```{r}
+setwd(here::here("output", "week_of_may_6_2024"))
+
+save(surface, file = "surface_markers_ExpT35_SLE_R_pool_2_HC13_HC_comp_99p_95p.rda")
+save(umap, file = "umap_ExpT35_SLE_R_pool_2_HC13_HC_comp_99p_95p.rda")
 ```
+

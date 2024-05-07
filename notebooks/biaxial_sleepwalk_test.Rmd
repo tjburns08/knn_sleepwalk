@@ -31,7 +31,9 @@ colnames(cells) <- params
 cells <- exprs(cells) 
 cells <- cells[, grepl("CD", colnames(cells))] # A shortcut to get to the surface markers we care about
 cells <- asinh(cells/5) %>% as_tibble()
-cells <- cells[sample(nrow(cells), 10000),]
+
+num_cells <- 20000
+cells <- cells[sample(nrow(cells), num_cells),]
 cells
 ```
 
@@ -50,7 +52,7 @@ setwd(here::here("output"))
 
 biaxial <- bind_cols(cells["195Pt_CD3"], cells["143Nd_CD19"])
 
-KnnSleepwalk(mat = biaxial, embedding = list(biaxial, umap), k = 50, output_file = "knn_sleepwalk_biaxial_test.html", point_size = 4, dimr_names = c("X = CD3, Y = CD19", "UMAP"))
+KnnSleepwalk(mat = biaxial, embedding = list(biaxial, umap), k = 50, output_file = paste0("knn_sleepwalk_biaxial_test", "_", num_cells, ".html"), point_size = 4, dimr_names = c("", ""))
 ```
 
 
