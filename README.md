@@ -1,3 +1,6 @@
+## Note:
+This project has become an R package, which can be found [here](https://github.com/tjburns08/KnnSleepwalk). I am leaving the current project here, as it contains exploratory analysis that is helping me determine where to take the package. At the time of writing, there is much more here than contained within the package, so please explore the notebooks/ directory and see the different applications that KNN sleepwalk can be used for.
+
 ## Introduction, the problem
 This project provides a wrapper to the sleepwalk R package, which can be found [here](https://anders-biostat.github.io/sleepwalk/). 
 
